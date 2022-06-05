@@ -1,21 +1,21 @@
-package ru.netology.web;
+package ru.netology.data;
 
 import com.github.javafaker.Faker;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import lombok.experimental.UtilityClass;
-import ru.netology.domain.RegistrationInfo;
+import lombok.Value;
 
 
 import java.util.Locale;
 
 import static io.restassured.RestAssured.given;
 
-@UtilityClass
+
 public class DataGenerator {
 
+    private static final Faker faker = new Faker((new Locale("ru")));
     private static final RequestSpecification requestSpec = new RequestSpecBuilder()
             .setBaseUri("http://localhost")
             .setPort(9999)
@@ -23,6 +23,9 @@ public class DataGenerator {
             .setContentType(ContentType.JSON)
             .log(LogDetail.ALL)
             .build();
+
+    public DataGenerator() {
+    }
 
     static void setUpAll(RegistrationInfo user) {
         given()
@@ -33,21 +36,35 @@ public class DataGenerator {
                 .statusCode(200);
     }
 
+    public static String getRandomLogin(){
+        return faker.name().username();
+    }
 
-    @UtilityClass
+    public static String getRandomPassword(){
+        return faker.internet().password();
+    }
+
     public static class Registration {
-        public static RegistrationInfo generateInfoForActive() {
-            Faker faker = new Faker(new Locale("ru"));
-            RegistrationInfo active = new RegistrationInfo(faker.name().firstName(), Integer.toString(faker.number().numberBetween(10000000, 99999999)), "active");
-            setUpAll(active);
-            return active;
+
+        public Registration() {
         }
 
-        public static RegistrationInfo generateInfoForBlocked() {
-            Faker faker = new Faker(new Locale("ru"));
-            RegistrationInfo blocked = new RegistrationInfo(faker.name().firstName(), Integer.toString(faker.number().numberBetween(10000000, 99999999)), "blocked");
-            setUpAll(blocked);
-            return blocked;
+        public static RegistrationInfo getUser(String status) {
+            return new RegistrationInfo(getRandomLogin(),getRandomPassword(),status);
         }
+        public static RegistrationInfo getRegisteredUser(String status) {
+            RegistrationInfo registeredUser = getUser(status);
+            setUpAll(registeredUser);
+            return registeredUser;
+        }
+    }
+    @Value
+
+    public static class RegistrationInfo {
+        String login;
+        String password;
+
+        String status;
+
     }
 }
